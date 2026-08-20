@@ -1,92 +1,87 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { createChart } from 'lightweight-charts';
 import { TrendingUp, TrendingDown, Target, ShieldAlert, BarChart2 } from 'lucide-react';
 
 export default function TradingDashboard() {
   const chartContainerRef = useRef(null);
-
-  // Core setup states
   const [currentPrice, setCurrentPrice] = useState(2045.50);
   const [dayHigh, setDayHigh] = useState(2058.20);
   const [dayLow, setDayLow] = useState(2038.10);
 
-  // Signal & Level states
   const [entryPrice, setEntryPrice] = useState(2042.00);
   const [stopLoss, setStopLoss] = useState(2035.00);
   const [takeProfit1, setTakeProfit1] = useState(2055.00);
   const [takeProfit2, setTakeProfit2] = useState(2065.00);
 
-  // Derived analysis calculations
   const risk = Math.abs(entryPrice - stopLoss);
   const reward1 = Math.abs(takeProfit1 - entryPrice);
   const riskRewardRatio = risk > 0 ? (reward1 / risk).toFixed(2) : '0.00';
   const rangePosition = (((currentPrice - dayLow) / (dayHigh - dayLow)) * 100).toFixed(1);
 
   useEffect(() => {
-    if (!chartContainerRef.current) return;
+    // Prevent SSR execution
+    if (typeof window === 'undefined' || !chartContainerRef.current) return;
 
-    // Initialize TradingView Lightweight Chart
-    const chart = createChart(chartContainerRef.current, {
-      width: chartContainerRef.current.clientWidth,
-      height: 450,
-      layout: {
-        backgroundColor: '#0f172a',
-        textColor: '#94a3b8',
-      },
-      grid: {
-        vertLines: { color: '#1e293b' },
-        horzLines: { color: '#1e293b' },
-      },
-      timeScale: { timeVisible: true },
-    });
+    let chart;
+    import('lightweight-charts').then(({ createChart }) => {
+      chart = createChart(chartContainerRef.current, {
+        width: chartContainerRef.current.clientWidth,
+        height: 450,
+        layout: {
+          backgroundColor: '#0f172a',
+          textColor: '#94a3b8',
+        },
+        grid: {
+          vertLines: { color: '#1e293b' },
+          horzLines: { color: '#1e293b' },
+        },
+        timeScale: { timeVisible: true },
+      });
 
-    const candleSeries = chart.addCandlestickSeries({
-      upColor: '#22c55e',
-      downColor: '#ef4444',
-      borderVisible: false,
-      wickUpColor: '#22c55e',
-      wickDownColor: '#ef4444',
-    });
+      const candleSeries = chart.addCandlestickSeries({
+        upColor: '#22c55e',
+        downColor: '#ef4444',
+        borderVisible: false,
+        wickUpColor: '#22c55e',
+        wickDownColor: '#ef4444',
+      });
 
-    // Generate sample intraday candlestick price action
-    const now = Math.floor(Date.now() / 1000);
-    const mockData = Array.from({ length: 40 }, (_, i) => {
-      const time = now - (40 - i) * 900; // 15m intervals
-      const base = 2040 + Math.sin(i / 3) * 8;
-      return {
-        time,
-        open: base - 1,
-        high: base + 3,
-        low: base - 2,
-        close: base + 1,
+      const now = Math.floor(Date.now() / 1000);
+      const mockData = Array.from({ length: 40 }, (_, i) => {
+        const time = now - (40 - i) * 900;
+        const base = 2040 + Math.sin(i / 3) * 8;
+        return {
+          time,
+          open: base - 1,
+          high: base + 3,
+          low: base - 2,
+          close: base + 1,
+        };
+      });
+
+      candleSeries.setData(mockData);
+
+      candleSeries.createPriceLine({ price: entryPrice, color: '#3b82f6', title: 'ENTRY' });
+      candleSeries.createPriceLine({ price: stopLoss, color: '#ef4444', title: 'SL' });
+      candleSeries.createPriceLine({ price: takeProfit1, color: '#22c55e', title: 'TP 1' });
+      candleSeries.createPriceLine({ price: takeProfit2, color: '#10b981', title: 'TP 2' });
+
+      const handleResize = () => {
+        if (chartContainerRef.current) {
+          chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+        }
       };
+      window.addEventListener('resize', handleResize);
     });
-
-    candleSeries.setData(mockData);
-
-    // Overlay visual technical price levels
-    candleSeries.createPriceLine({ price: entryPrice, color: '#3b82f6', title: 'ENTRY' });
-    candleSeries.createPriceLine({ price: stopLoss, color: '#ef4444', title: 'SL' });
-    candleSeries.createPriceLine({ price: takeProfit1, color: '#22c55e', title: 'TP 1' });
-    candleSeries.createPriceLine({ price: takeProfit2, color: '#10b981', title: 'TP 2' });
-
-    const handleResize = () => {
-      chart.applyOptions({ width: chartContainerRef.current.clientWidth });
-    };
-    window.addEventListener('resize', handleResize);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
-      chart.remove();
+      if (chart) chart.remove();
     };
   }, [entryPrice, stopLoss, takeProfit1, takeProfit2]);
 
   return (
     <div style={{ backgroundColor: '#090d16', color: '#f8fafc', padding: '24px', borderRadius: '12px', fontFamily: 'sans-serif' }}>
-      
-      {/* Top Header Metrics Bar */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' }}>
         <div style={{ background: '#1e293b', padding: '16px', borderRadius: '8px' }}>
           <span style={{ color: '#94a3b8', fontSize: '12px' }}>Live Gold (XAU/USD)</span>
@@ -108,10 +103,7 @@ export default function TradingDashboard() {
         </div>
       </div>
 
-      {/* Main Grid: Live Chart + Trade Parameters */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-        
-        {/* Interactive Chart Canvas */}
         <div style={{ background: '#0f172a', padding: '16px', borderRadius: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
             <span style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -122,7 +114,6 @@ export default function TradingDashboard() {
           <div ref={chartContainerRef} style={{ width: '100%', height: '450px' }} />
         </div>
 
-        {/* Trade Control Panel */}
         <div style={{ background: '#1e293b', padding: '20px', borderRadius: '8px' }}>
           <h3 style={{ marginTop: 0, color: '#f8fafc', fontSize: '16px' }}>Target & Stop Level Controls</h3>
           
@@ -170,7 +161,6 @@ export default function TradingDashboard() {
             Sync Technical Levels
           </button>
         </div>
-
       </div>
     </div>
   );

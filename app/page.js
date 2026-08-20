@@ -1,6 +1,7 @@
+'use client';
+
 import dynamic from 'next/dynamic';
 
-// Dynamically import the dashboard with SSR disabled for browser charts
 const TradingDashboard = dynamic(() => import('../components/TradingDashboard'), {
   ssr: false,
 });

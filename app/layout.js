@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Gold Trading Signals Dashboard',
-  description: 'Live XAU/USD technical workstation and trade setups',
+  description: 'Live XAU/USD technical workstation',
 };
 
 export default function RootLayout({ children }) {

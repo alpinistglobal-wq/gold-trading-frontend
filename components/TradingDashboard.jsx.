@@ -106,9 +106,7 @@ export default function TradingDashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
         <div style={{ background: '#0f172a', padding: '16px', borderRadius: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <span style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-              📊 Technical Level Overlay
-            </span>
+            <span style={{ fontWeight: 'bold' }}>📊 Technical Level Overlay</span>
             <span style={{ color: '#22c55e', fontSize: '12px' }}>● Live Feed Active</span>
           </div>
           <div ref={chartContainerRef} style={{ width: '100%', height: '450px' }} />

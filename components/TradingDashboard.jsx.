@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { TrendingUp, TrendingDown, Target, ShieldAlert, BarChart2 } from 'lucide-react';
 
 export default function TradingDashboard() {
   const chartContainerRef = useRef(null);
-  const [currentPrice, setCurrentPrice] = useState(2045.50);
-  const [dayHigh, setDayHigh] = useState(2058.20);
-  const [dayLow, setDayLow] = useState(2038.10);
+  const [currentPrice] = useState(2045.50);
+  const [dayHigh] = useState(2058.20);
+  const [dayLow] = useState(2038.10);
 
   const [entryPrice, setEntryPrice] = useState(2042.00);
   const [stopLoss, setStopLoss] = useState(2035.00);
@@ -20,11 +19,12 @@ export default function TradingDashboard() {
   const rangePosition = (((currentPrice - dayLow) / (dayHigh - dayLow)) * 100).toFixed(1);
 
   useEffect(() => {
-    // Prevent SSR execution
     if (typeof window === 'undefined' || !chartContainerRef.current) return;
 
     let chart;
     import('lightweight-charts').then(({ createChart }) => {
+      if (!chartContainerRef.current) return;
+
       chart = createChart(chartContainerRef.current, {
         width: chartContainerRef.current.clientWidth,
         height: 450,
@@ -68,7 +68,7 @@ export default function TradingDashboard() {
       candleSeries.createPriceLine({ price: takeProfit2, color: '#10b981', title: 'TP 2' });
 
       const handleResize = () => {
-        if (chartContainerRef.current) {
+        if (chartContainerRef.current && chart) {
           chart.applyOptions({ width: chartContainerRef.current.clientWidth });
         }
       };
@@ -106,8 +106,8 @@ export default function TradingDashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
         <div style={{ background: '#0f172a', padding: '16px', borderRadius: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <span style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <BarChart2 size={18} color="#f59e0b" /> Technical Level Overlay
+            <span style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+              📊 Technical Level Overlay
             </span>
             <span style={{ color: '#22c55e', fontSize: '12px' }}>● Live Feed Active</span>
           </div>
